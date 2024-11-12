@@ -84,8 +84,8 @@
 
         // Load data files
         Promise.all([
-            d3.json("data/towns.topojson"),
-            d3.csv("data/gini_index.csv")
+            d3.json("towns.topojson"),
+            d3.csv("gini_index.csv")
         ]).then(([topoData, giniData]) => {
             const towns = topojson.feature(topoData, topoData.objects.ma).features;
 
@@ -130,37 +130,47 @@
                     d3.select(this).attr("stroke", "#333");
                 });
 
-            const mapB = d3.select("#mapB").append("svg")
-                .attr("width", width)
-                .attr("height", height);
+                const mapB = d3.select("#mapB").append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
 
-            mapB.selectAll("path")
-                .data(towns)
-                .enter().append("path")
-                .attr("d", path)
-                .attr("fill", d => {
-                    const populationChange = d.properties.POP2010 - d.properties.POP1980;
-                    return populationChange > 0
-                        ? populationIncreaseScale(populationChange)
-                        : populationDecreaseScale(populationChange);
-                })
-                .attr("stroke", "#333")
-                .on("mouseenter", function(event, d) {
-                    const populationChange = d.properties.POP2010 - d.properties.POP1980;
-                    tooltip.style("visibility", "visible")
-                        .html(`Town: ${d.properties.TOWN}<br>Population Change (1980-2010): ${populationChange}`)
-                        .style("top", (event.pageY + 5) + "px")
-                        .style("left", (event.pageX + 5) + "px");
-                    d3.select(this).attr("stroke", "#111").raise();
-                })
-                .on("mousemove", function(event) {
-                    tooltip.style("top", (event.pageY + 5) + "px")
-                        .style("left", (event.pageX + 5) + "px");
-                })
-                .on("mouseleave", function () {
-                    tooltip.style("visibility", "hidden");
-                    d3.select(this).attr("stroke", "#333");
-                });
+                mapB.selectAll("path")
+                    .data(towns)
+                    .enter().append("path")
+                    .attr("d", path)
+                    .attr("fill", d => {
+                        const populationChange = d.properties.POP2010 - d.properties.POP1980;
+                        return populationChange > 0
+                            ? populationIncreaseScale(populationChange)
+                            : populationDecreaseScale(populationChange);
+                    })
+                    .attr("stroke", "#333")
+                    .on("mouseenter", function(event, d) {
+                        const population1980 = d.properties.POP1980;
+                        const population2010 = d.properties.POP2010;
+                        const populationChange = population2010 - population1980;
+                        
+                        tooltip.style("visibility", "visible")
+                            .html(`
+                                Town: ${d.properties.TOWN}<br>
+                                Population (1980): ${population1980}<br>
+                                Population (2010): ${population2010}<br>
+                                Population Change (1980-2010): ${populationChange}
+                            `)
+                            .style("top", (event.pageY + 5) + "px")
+                            .style("left", (event.pageX + 5) + "px");
+                        
+                        d3.select(this).attr("stroke", "#111").raise();
+                    })
+                    .on("mousemove", function(event) {
+                        tooltip.style("top", (event.pageY + 5) + "px")
+                            .style("left", (event.pageX + 5) + "px");
+                    })
+                    .on("mouseleave", function () {
+                        tooltip.style("visibility", "hidden");
+                        d3.select(this).attr("stroke", "#333");
+                    });
+
 
             // MAP C: Gini Index 2019 with Gini history DIV following the cursor
             const mapC = d3.select("#mapC").append("svg")
